@@ -20,7 +20,7 @@
 3. **Установите зависимости с помощью Poetry:** Убедитесь, что у вас установлен **Poetry**. Если нет, установите его: curl -sSL https://install.python-poetry.org | python3 -
 4. Установите зависимости: poetry install
 5. **Создайте базу данных (если используете PostgreSQL):**
-Убедитесь, что у вас установлен PostgreSQL и создана база данных. Для создания базы данных в PostgreSQL используйте команду: create database <name>
+Убедитесь, что у вас установлен PostgreSQL и создана база данных. Для создания базы данных в PostgreSQL используйте команду: create database 'name'
 6. **Создайте и примените миграции для создания таблиц в базе данных:** python manage.py makemigrations, migrate
 7. **Запустите сервер разработки:** python manage.py runserver
 
