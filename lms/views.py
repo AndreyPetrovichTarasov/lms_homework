@@ -1,6 +1,12 @@
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 from rest_framework import viewsets
+from rest_framework.viewsets import ModelViewSet
+
+from users.models import Payment
+from .filters import PaymentFilter
 from .models import Course
-from .serializers import CourseSerializer
+from .serializers import CourseSerializer, PaymentSerializer
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .models import Lesson
 from .serializers import LessonSerializer
@@ -28,3 +34,16 @@ class LessonRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     """
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+
+
+class PaymentViewSet(ModelViewSet):
+    """
+    ViewSet для работы с платежами.
+    """
+    queryset = Payment.objects.select_related('user', 'course', 'lesson')
+    serializer_class = PaymentSerializer
+
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = PaymentFilter
+    ordering_fields = ['date']
+    ordering = ['-date']
