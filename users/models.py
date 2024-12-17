@@ -16,7 +16,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Электронная почта обязательна")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-        user.set_password(password)
+        user.set_password(user.password)
         user.save(using=self._db)
         return user
 
