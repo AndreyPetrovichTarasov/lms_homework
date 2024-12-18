@@ -1,13 +1,18 @@
-from rest_framework.generics import RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView
 from django.contrib.auth import get_user_model
+from rest_framework.generics import (CreateAPIView, ListCreateAPIView,
+                                     RetrieveUpdateDestroyAPIView)
 from rest_framework.permissions import AllowAny, IsAuthenticated
+
 from .serializers import UserSerializer, UserUpdateSerializer
-from rest_framework.generics import CreateAPIView, ListCreateAPIView
 
 User = get_user_model()
 
 
 class UserCreateAPIView(CreateAPIView):
+    """
+    Создание пользователя.
+    """
+
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [AllowAny]
@@ -19,6 +24,10 @@ class UserCreateAPIView(CreateAPIView):
 
 
 class UserListView(ListCreateAPIView):
+    """
+    Просмотр пользователей.
+    """
+
     queryset = User.objects.all()
     serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated]
@@ -28,6 +37,10 @@ class UserListView(ListCreateAPIView):
 
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
+    """
+    Просмотр профиля пользователя.
+    """
+
     queryset = User.objects.all()
     serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated]
