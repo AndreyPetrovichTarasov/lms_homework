@@ -9,6 +9,7 @@ class Course(models.Model):
 
     name = models.CharField(max_length=100)
     preview = models.ImageField(upload_to="preview/", blank=True, null=True)
+    video_url = models.URLField(max_length=200, verbose_name="Ссылка на видео")
     description = models.TextField()
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
@@ -59,3 +60,15 @@ class Lesson(models.Model):
         verbose_name = "урок"
         verbose_name_plural = "уроки"
         ordering = ["created_at"]
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="subscriptions")
+    course = models.ForeignKey('Course', on_delete=models.CASCADE, related_name="subscribers")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'course')
+
+    def __str__(self):
+        return f"{self.user} -> {self.course}"

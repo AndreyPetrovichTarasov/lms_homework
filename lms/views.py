@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
@@ -5,13 +6,17 @@ from rest_framework.generics import (CreateAPIView, DestroyAPIView,
                                      ListAPIView, RetrieveAPIView,
                                      UpdateAPIView)
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from users.models import Payment
 from users.permissions import IsModer, IsOwner
 
 from .filters import PaymentFilter
-from .models import Course, Lesson
+from .models import Course, Lesson, Subscription
+from .paginators import CustomPageNumberPagination
 from .serializers import CourseSerializer, LessonSerializer, PaymentSerializer
 
 
@@ -22,6 +27,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    pagination_class = CustomPageNumberPagination
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -43,6 +49,7 @@ class LessonListAPIView(ListAPIView):
 
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+    pagination_class = CustomPageNumberPagination
 
 
 class LessonCreateAPIView(CreateAPIView):
@@ -103,3 +110,29 @@ class PaymentViewSet(ModelViewSet):
     filterset_class = PaymentFilter
     ordering_fields = ["date"]
     ordering = ["-date"]
+
+
+class SubscriptionAPIView(APIView):
+    """
+    Контроллер для подписки на обновления курса.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        course_id = request.data.get("course_id")
+
+        if not course_id:
+            return Response({"error": "course_id is required"}, status=HTTP_400_BAD_REQUEST)
+
+        course = get_object_or_404(Course, id=course_id)
+        subscription = Subscription.objects.filter(user=user, course=course)
+
+        if subscription.exists():
+            subscription.delete()
+            message = "Подписка удалена"
+        else:
+            Subscription.objects.create(user=user, course=course)
+            message = "Подписка добавлена"
+
+        return Response({"message": message}, status=HTTP_200_OK)
