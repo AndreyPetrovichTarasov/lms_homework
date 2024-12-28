@@ -65,6 +65,7 @@ class Payment(models.Model):
     PAYMENT_METHODS = [
         ("cash", "Наличные"),
         ("transfer", "Перевод на счет"),
+        ("stripe", "Stripe"),
     ]
 
     user = models.ForeignKey(
@@ -91,6 +92,10 @@ class Payment(models.Model):
     payment_method = models.CharField(
         max_length=10, choices=PAYMENT_METHODS, verbose_name="Способ оплаты"
     )
+    stripe_product_id = models.CharField(max_length=255, null=True, blank=True)
+    stripe_price_id = models.CharField(max_length=255, null=True, blank=True)
+    stripe_session_id = models.CharField(max_length=255, null=True, blank=True)
+    stripe_checkout_url = models.URLField(max_length=500, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.email} - {self.amount} руб."

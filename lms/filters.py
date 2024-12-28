@@ -18,7 +18,8 @@ class PaymentFilter(django_filters.FilterSet):
         field_name="payment_method",
         choices=Payment.PAYMENT_METHODS,
     )
-    ordering = django_filters.OrderingFilter(
+
+    ordering_param = django_filters.OrderingFilter(
         fields=[
             ("date", "date"),
         ],
