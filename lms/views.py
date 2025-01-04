@@ -17,6 +17,7 @@ from users.permissions import IsModer, IsOwner
 from .models import Course, Lesson, Subscription
 from .paginators import CustomPageNumberPagination
 from .serializers import CourseSerializer, LessonSerializer
+from .tasks import send_course_update_email
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -97,30 +98,29 @@ class LessonDestroyAPIView(DestroyAPIView):
     permission_classes = (IsAuthenticated, IsOwner | IsModer)
 
 
-class SubscriptionAPIView(APIView):
+class CourseUpdateAPIView(APIView):
     """
-    Контроллер для подписки на обновления курса.
+    Контроллер для обновления курса.
     """
 
-    permission_classes = [IsAuthenticated]
+    def put(self, request, *args, **kwargs):
+        course_id = kwargs.get("pk")
+        course = get_object_or_404(Course, id=course_id)
 
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        course_id = request.data.get("course_id")
+        # Обновление курса
+        course.name = request.data.get("name", course.name)
+        course.description = request.data.get("description", course.description)
+        course.save()
 
-        if not course_id:
-            return Response(
-                {"error": "course_id is required"}, status=HTTP_400_BAD_REQUEST
+        # Получение подписчиков курса
+        subscriptions = Subscription.objects.filter(course=course)
+
+        # Отправка писем подписчикам
+        for subscription in subscriptions:
+            send_course_update_email.delay(
+                user_email=subscription.user.email,
+                course_name=course.name,
+                update_info="Курс обновлен. Проверьте новые материалы!",
             )
 
-        course = get_object_or_404(Course, id=course_id)
-        subscription = Subscription.objects.filter(user=user, course=course)
-
-        if subscription.exists():
-            subscription.delete()
-            message = "Подписка удалена"
-        else:
-            Subscription.objects.create(user=user, course=course)
-            message = "Подписка добавлена"
-
-        return Response({"message": message}, status=HTTP_200_OK)
+        return Response({"message": "Курс обновлен и уведомления отправлены"}, status=HTTP_200_OK)
